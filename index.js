@@ -3,17 +3,16 @@
   var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   $(document).ready(function() {
-    var DOWN, Grid, LEFT, Machine, RIGHT, UP, X_SIZE, Y_SIZE, grid;
-    X_SIZE = 9;
-    Y_SIZE = 5;
-    UP = 1;
-    RIGHT = 2;
-    DOWN = 3;
-    LEFT = 4;
+    var DOWN, Grid, LEFT, Machine, RIGHT, UP, grid;
+    UP = 'up';
+    RIGHT = 'right';
+    DOWN = 'down';
+    LEFT = 'left';
     Grid = (function() {
-      function Grid(width, height) {
+      function Grid(width, height, element1) {
         this.width = width;
         this.height = height;
+        this.element = element1;
         this.machines = (function() {
           var j, ref, results;
           results = [];
@@ -32,81 +31,51 @@
         }).call(this);
       }
 
-      Grid.prototype.paint = function(element) {
-        var c, chars, j, k, l, line, m, machine, machine_chars, n, o, p, px, py, q, r, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s, x, y;
-        px = (X_SIZE + 1) * this.width + 1;
-        py = (Y_SIZE + 1) * this.height + 1;
-        chars = (function() {
-          var j, ref, results;
-          results = [];
-          for (j = 1, ref = py; 1 <= ref ? j <= ref : j >= ref; 1 <= ref ? j++ : j--) {
-            results.push((function() {
-              var k, ref1, results1;
-              results1 = [];
-              for (k = 1, ref1 = px; 1 <= ref1 ? k <= ref1 : k >= ref1; 1 <= ref1 ? k++ : k--) {
-                results1.push(null);
-              }
-              return results1;
-            })());
+      Grid.prototype.paint = function() {
+        var dir, i, j, k, l, len, len1, m, machine, n, numbers, o, ref, ref1, ref2, ref3, ref4, ref5, row, slots, x, y;
+        slots = $('<div/>', {
+          "class": 'slots'
+        });
+        for (y = j = 0, ref = this.height; 0 <= ref ? j < ref : j > ref; y = 0 <= ref ? ++j : --j) {
+          row = $('<div/>', {
+            "class": 'row'
+          });
+          for (x = k = 0, ref1 = this.width; 0 <= ref1 ? k < ref1 : k > ref1; x = 0 <= ref1 ? ++k : --k) {
+            row.append($('<div/>', {
+              "class": 'slot',
+              id: 'slot' + (y * this.width + x)
+            }));
           }
-          return results;
-        })();
-        for (x = j = 0, ref = px; 0 <= ref ? j < ref : j > ref; x = 0 <= ref ? ++j : --j) {
-          for (y = k = 0, ref1 = py; 0 <= ref1 ? k < ref1 : k > ref1; y = 0 <= ref1 ? ++k : --k) {
-            if (x % (X_SIZE + 1) === 0 && y % (Y_SIZE + 1) === 0) {
-              chars[y][x] = '+';
+          slots.append(row);
+        }
+        this.element.append(slots);
+        ref2 = this.machines;
+        for (i = l = 0, len = ref2.length; l < len; i = ++l) {
+          machine = ref2[i];
+          if (machine != null) {
+            this.element.find('#slot' + i).append(machine.paint());
+          }
+        }
+        numbers = $('<div/>', {
+          "class": 'numbers'
+        });
+        for (y = m = 0, ref3 = this.height; 0 <= ref3 ? m <= ref3 : m >= ref3; y = 0 <= ref3 ? ++m : --m) {
+          row = $('<div/>', {
+            "class": 'row'
+          });
+          for (x = n = 0, ref4 = this.width; 0 <= ref4 ? n <= ref4 : n >= ref4; x = 0 <= ref4 ? ++n : --n) {
+            ref5 = [LEFT, UP];
+            for (o = 0, len1 = ref5.length; o < len1; o++) {
+              dir = ref5[o];
+              row.append($('<div/>', {
+                "class": 'number',
+                id: 'number' + this.toEdgeIndex(x, y, dir)
+              }));
             }
           }
+          numbers.append(row);
         }
-        for (x = l = 1, ref2 = this.width; 1 <= ref2 ? l < ref2 : l > ref2; x = 1 <= ref2 ? ++l : --l) {
-          for (y = m = 1, ref3 = this.height; 1 <= ref3 ? m < ref3 : m > ref3; y = 1 <= ref3 ? ++m : --m) {
-            machine = this.getMachine(x, y);
-            if (machine != null) {
-              machine_chars = machine.paint();
-              for (px = n = 0, ref4 = X_SIZE; 0 <= ref4 ? n < ref4 : n > ref4; px = 0 <= ref4 ? ++n : --n) {
-                for (py = o = 0, ref5 = Y_SIZE; 0 <= ref5 ? o < ref5 : o > ref5; py = 0 <= ref5 ? ++o : --o) {
-                  chars[y * (Y_SIZE + 1) + py + 1][x * (X_SIZE + 1) + px + 1] = machine_chars[py][px];
-                }
-              }
-            }
-          }
-        }
-        for (x = p = 0, ref6 = this.width; 0 <= ref6 ? p < ref6 : p > ref6; x = 0 <= ref6 ? ++p : --p) {
-          for (y = q = 0, ref7 = this.height; 0 <= ref7 ? q <= ref7 : q >= ref7; y = 0 <= ref7 ? ++q : --q) {
-            chars[y * (Y_SIZE + 1)][x * (X_SIZE + 1) + Math.floor((X_SIZE + 1) / 2)] = this.getEdge(x, y, UP);
-          }
-        }
-        for (x = r = 0, ref8 = this.width; 0 <= ref8 ? r <= ref8 : r >= ref8; x = 0 <= ref8 ? ++r : --r) {
-          for (y = s = 0, ref9 = this.height; 0 <= ref9 ? s < ref9 : s > ref9; y = 0 <= ref9 ? ++s : --s) {
-            chars[y * (Y_SIZE + 1) + Math.floor((Y_SIZE + 1) / 2)][x * (X_SIZE + 1)] = this.getEdge(x, y, LEFT);
-          }
-        }
-        chars = (function() {
-          var len, results, t;
-          results = [];
-          for (t = 0, len = chars.length; t < len; t++) {
-            line = chars[t];
-            results.push((function() {
-              var len1, results1, u;
-              results1 = [];
-              for (u = 0, len1 = line.length; u < len1; u++) {
-                c = line[u];
-                results1.push(c != null ? c : ' ');
-              }
-              return results1;
-            })());
-          }
-          return results;
-        })();
-        return element.text(((function() {
-          var len, results, t;
-          results = [];
-          for (t = 0, len = chars.length; t < len; t++) {
-            line = chars[t];
-            results.push(line.join(''));
-          }
-          return results;
-        })()).join('\n'));
+        return this.element.append(numbers);
       };
 
       Grid.prototype.getMachine = function(x, y) {
@@ -118,7 +87,7 @@
       };
 
       Grid.prototype.toMachineIndex = function(x, y) {
-        return x + y * X_SIZE;
+        return x + y * this.width;
       };
 
       Grid.prototype.getEdge = function(x, y, dir) {
@@ -126,14 +95,17 @@
       };
 
       Grid.prototype.setEdge = function(x, y, dir, value) {
-        return this.edges[this.toEdgeIndex(x, y, dir)] = value;
+        var edge_index;
+        edge_index = this.toEdgeIndex(x, y, dir);
+        this.element.find('#number' + edge_index).text(value != null ? value : '');
+        return this.edges[edge_index] = value;
       };
 
       Grid.prototype.toEdgeIndex = function(x, y, dir) {
         if (dir === UP) {
-          return (x + y * X_SIZE) * 2;
+          return (x + y * (this.width + 1)) * 2 + 1;
         } else if (dir === LEFT) {
-          return (x + y * X_SIZE) * 2 + 1;
+          return (x + y * (this.width + 1)) * 2;
         } else if (dir === RIGHT) {
           return this.toEdgeIndex(x + 1, y, LEFT);
         } else if (dir === DOWN) {
@@ -229,34 +201,30 @@
       }
 
       Machine.prototype.paint = function() {
-        var chars, dir, in_c, j, len, out_c, ref, ref1, x, y;
-        chars = (function() {
-          var j, ref, results;
-          results = [];
-          for (y = j = 0, ref = Y_SIZE; 0 <= ref ? j < ref : j > ref; y = 0 <= ref ? ++j : --j) {
-            results.push((function() {
-              var k, ref1, results1;
-              results1 = [];
-              for (x = k = 0, ref1 = X_SIZE; 0 <= ref1 ? k < ref1 : k > ref1; x = 0 <= ref1 ? ++k : --k) {
-                results1.push(y === 0 || y === Y_SIZE - 1 ? '-' : x === 0 || x === X_SIZE - 1 ? '|' : ' ');
-              }
-              return results1;
-            })());
-          }
-          return results;
-        })();
-        ref = [[UP, 0, Math.floor(X_SIZE / 2), 'V', '^'], [RIGHT, Math.floor(Y_SIZE / 2), X_SIZE - 1, '<', '>'], [DOWN, Y_SIZE - 1, Math.floor(X_SIZE / 2), '^', 'V'], [LEFT, Math.floor(Y_SIZE / 2), 0, '>', '<']];
+        var dir, element, j, k, len, len1, list, name, ref, ref1, ref2;
+        element = $('<div/>', {
+          "class": 'machine'
+        });
+        ref = [[this.inputs, 'input'], [this.outputs, 'output']];
         for (j = 0, len = ref.length; j < len; j++) {
-          ref1 = ref[j], dir = ref1[0], y = ref1[1], x = ref1[2], in_c = ref1[3], out_c = ref1[4];
-          chars[y][x] = indexOf.call(this.inputs, dir) >= 0 ? in_c : indexOf.call(this.outputs, dir) >= 0 ? out_c : chars[y][x];
+          ref1 = ref[j], list = ref1[0], name = ref1[1];
+          ref2 = [UP, DOWN, LEFT, RIGHT];
+          for (k = 0, len1 = ref2.length; k < len1; k++) {
+            dir = ref2[k];
+            if (indexOf.call(list, dir) >= 0) {
+              element.append($('<div/>', {
+                "class": 'port ' + name + ' ' + dir
+              }));
+            }
+          }
         }
-        return chars;
+        return element;
       };
 
       return Machine;
 
     })();
-    grid = new Grid(5, 5);
+    grid = new Grid(5, 5, $('.grid'));
     grid.setMachine(1, 1, new Machine([], [DOWN], function() {
       if (this.t != null) {
         return this.t = null;
@@ -281,10 +249,9 @@
       ];
     }));
     grid.setMachine(3, 3, new Machine([LEFT]));
-    grid.paint($('.grid'));
+    grid.paint();
     return setInterval(function() {
-      grid.update();
-      return grid.paint($('.grid'));
+      return grid.update();
     }, 1000);
   });
 

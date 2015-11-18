@@ -1,48 +1,36 @@
 $(document).ready(() ->
 
-  X_SIZE = 9
-  Y_SIZE = 5
-
-  UP = 1
-  RIGHT = 2
-  DOWN = 3
-  LEFT = 4
+  UP = 'up'
+  RIGHT = 'right'
+  DOWN = 'down'
+  LEFT = 'left'
 
   class Grid
-    constructor: (@width, @height) ->
+    constructor: (@width, @height, @element) ->
       @machines = (null for [1..(@width * @height)])
       @edges = (null for [1..(@width + @height + 2 * @width * @height)])
 
-    paint: (element) ->
-      px = (X_SIZE + 1) * @width + 1
-      py = (Y_SIZE + 1) * @height + 1
-      chars = ((null for [1..px]) for [1..py])
+    paint: () ->
+      slots = $('<div/>', {class: 'slots'})
+      for y in [0...@height]
+        row = $('<div/>', {class: 'row'})
+        for x in [0...@width]
+          row.append($('<div/>', {class: 'slot', id: 'slot' + (y * @width + x)}))
+        slots.append(row)
+      @element.append(slots)
 
-      for x in [0...px]
-        for y in [0...py]
-          if x % (X_SIZE + 1) == 0 and y % (Y_SIZE + 1) == 0
-            chars[y][x] = '+'
+      for machine, i in @machines
+        if machine?
+          @element.find('#slot' + i).append(machine.paint())
 
-      for x in [1...@width]
-        for y in [1...@height]
-          machine = @getMachine(x, y)
-          if machine?
-            machine_chars = machine.paint()
-            for px in [0...X_SIZE]
-              for py in [0...Y_SIZE]
-                chars[y * (Y_SIZE + 1) + py + 1][x * (X_SIZE + 1) + px + 1] = machine_chars[py][px]
-
-      for x in [0...@width]
-        for y in [0..@height]
-          chars[y * (Y_SIZE + 1)][x * (X_SIZE + 1) + (X_SIZE + 1)//2] = @getEdge(x, y, UP)
-
-      for x in [0..@width]
-        for y in [0...@height]
-          chars[y * (Y_SIZE + 1) + (Y_SIZE + 1) // 2][x * (X_SIZE + 1)] = @getEdge(x, y, LEFT)
-
-      chars = (((if c? then c else ' ') for c in line) for line in chars)
-
-      element.text((line.join('') for line in chars).join('\n'))
+      numbers = $('<div/>', {class: 'numbers'})
+      for y in [0..@height]
+        row = $('<div/>', {class: 'row'})
+        for x in [0..@width]
+          for dir in [LEFT, UP]
+            row.append($('<div/>', {class: 'number', id: 'number' + @toEdgeIndex(x, y, dir)}))
+        numbers.append(row)
+      @element.append(numbers)
 
     getMachine: (x, y) ->
       @machines[@toMachineIndex(x, y)]
@@ -51,19 +39,21 @@ $(document).ready(() ->
       @machines[@toMachineIndex(x, y)] = value
 
     toMachineIndex: (x, y) ->
-      x + y * X_SIZE
+      x + y * @width
 
     getEdge: (x, y, dir) ->
       @edges[@toEdgeIndex(x, y, dir)]
 
     setEdge: (x, y, dir, value) ->
-      @edges[@toEdgeIndex(x, y, dir)] = value
+      edge_index = @toEdgeIndex(x, y, dir)
+      @element.find('#number'+edge_index).text(if value? then value else '')
+      @edges[edge_index] = value
 
     toEdgeIndex: (x, y, dir) ->
       if dir == UP
-        return (x + y * X_SIZE) * 2
+        return (x + y * (@width + 1)) * 2 + 1
       else if dir == LEFT
-        return (x + y * X_SIZE) * 2 + 1
+        return (x + y * (@width + 1)) * 2
       else if dir == RIGHT
         return @toEdgeIndex(x + 1, y, LEFT)
       else if dir == DOWN
@@ -108,19 +98,16 @@ $(document).ready(() ->
       @contents = null
 
     paint: () ->
-      chars = (((if (y == 0 or y == Y_SIZE - 1) then '-' else if (x == 0 or x == X_SIZE - 1) then '|' else ' ') for x in [0...X_SIZE]) for y in [0...Y_SIZE])
+      element = $('<div/>', {class: 'machine'})
 
-      for [dir, y, x, in_c, out_c] in [
-        [UP, 0, X_SIZE//2, 'V', '^'],
-        [RIGHT, Y_SIZE//2, X_SIZE - 1, '<', '>'],
-        [DOWN, Y_SIZE - 1, X_SIZE//2, '^', 'V'],
-        [LEFT, Y_SIZE//2, 0, '>', '<'],
-      ]
-        chars[y][x] = if dir in @inputs then in_c else if dir in @outputs then out_c else chars[y][x]
+      for [list, name] in [[@inputs, 'input'], [@outputs, 'output']]
+        for dir in [UP, DOWN, LEFT, RIGHT]
+          if dir in list
+            element.append($('<div/>', {class: 'port ' + name + ' ' + dir}))
 
-      return chars
+      return element
 
-  grid = new Grid(5, 5)
+  grid = new Grid(5, 5, $('.grid'))
 
   #Produder
   grid.setMachine(1, 1, new Machine([], [DOWN],
@@ -130,25 +117,19 @@ $(document).ready(() ->
       else
         @t = [Math.floor(Math.random() * 4)]
   ))
-
   #Splitter
   grid.setMachine(1, 2, new Machine([UP], [DOWN, RIGHT], (i) -> i.concat(i)))
-
   #Doubler
   grid.setMachine(2, 2, new Machine([LEFT], [DOWN], (i) -> i.map((a) -> a * 2)))
-
   #Conveyer
   grid.setMachine(1, 3, new Machine([UP], [RIGHT]))
-
   #Adder
   grid.setMachine(2, 3, new Machine([UP, LEFT], [RIGHT], (i) -> [i.reduce((a, b) -> (a + b))]))
-
   #Consumer
   grid.setMachine(3, 3, new Machine([LEFT]))
 
-  grid.paint($('.grid'))
+  grid.paint()
   setInterval(() ->
     grid.update()
-    grid.paint($('.grid'))
   , 1000)
 )

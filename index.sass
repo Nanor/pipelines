@@ -1,0 +1,76 @@
+$slot_size: 100px
+
+.grid
+  position: relative
+  .slots
+    .row
+      height: $slot_size
+
+    .slot
+      width: $slot_size
+      height: $slot_size
+      display: inline-block
+      background: whitesmoke
+
+    .row:nth-child(even) > .slot:nth-child(even),
+    .row:nth-child(odd) > .slot:nth-child(odd)
+      background: lightgray
+
+    .machine
+      margin: 15px
+      width: 65px
+      height: 65px
+      border: thin solid black
+      background: greenyellow
+      position: relative
+
+      .port
+        border: thin solid black
+        position: absolute
+
+      .input
+        background: blue
+
+      .output
+        background: red
+
+      .up, .down
+        width: 30px
+        height: 15px
+        left: 15px
+
+      .up
+        top: -10px
+
+      .down
+        top: 55px
+
+      .left, .right
+        width: 15px
+        height: 30px
+        top: 15px
+
+      .left
+        left: -10px
+
+      .right
+        left: 55px
+
+  .numbers
+    position: fixed
+    top: -27px
+    left: -2px
+
+    .row
+      .number
+        width: 20px
+        height: 20px
+        display: inline-block
+        margin-right: 30px
+        overflow: hidden
+
+      .number:nth-child(even)
+        margin-bottom: 50px
+
+      .number:nth-child(odd)
+        margin-top: 76px

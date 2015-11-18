@@ -1,0 +1,58 @@
+.grid {
+  position: relative; }
+  .grid .slots .row {
+    height: 100px; }
+  .grid .slots .slot {
+    width: 100px;
+    height: 100px;
+    display: inline-block;
+    background: whitesmoke; }
+  .grid .slots .row:nth-child(even) > .slot:nth-child(even),
+  .grid .slots .row:nth-child(odd) > .slot:nth-child(odd) {
+    background: lightgray; }
+  .grid .slots .machine {
+    margin: 15px;
+    width: 65px;
+    height: 65px;
+    border: thin solid black;
+    background: greenyellow;
+    position: relative; }
+    .grid .slots .machine .port {
+      border: thin solid black;
+      position: absolute; }
+    .grid .slots .machine .input {
+      background: blue; }
+    .grid .slots .machine .output {
+      background: red; }
+    .grid .slots .machine .up, .grid .slots .machine .down {
+      width: 30px;
+      height: 15px;
+      left: 15px; }
+    .grid .slots .machine .up {
+      top: -10px; }
+    .grid .slots .machine .down {
+      top: 55px; }
+    .grid .slots .machine .left, .grid .slots .machine .right {
+      width: 15px;
+      height: 30px;
+      top: 15px; }
+    .grid .slots .machine .left {
+      left: -10px; }
+    .grid .slots .machine .right {
+      left: 55px; }
+  .grid .numbers {
+    position: fixed;
+    top: -27px;
+    left: -2px; }
+    .grid .numbers .row .number {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+      margin-right: 30px;
+      overflow: hidden; }
+    .grid .numbers .row .number:nth-child(even) {
+      margin-bottom: 50px; }
+    .grid .numbers .row .number:nth-child(odd) {
+      margin-top: 76px; }
+
+/*# sourceMappingURL=index.css.map */
