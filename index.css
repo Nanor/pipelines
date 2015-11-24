@@ -1,58 +1,57 @@
-.grid {
+.grid .row {
+  height: 100px; }
+.grid .cell {
+  width: 100px;
+  height: 100%;
+  display: inline-block;
   position: relative; }
-  .grid .slots .row {
-    height: 100px; }
-  .grid .slots .slot {
-    width: 100px;
-    height: 100px;
-    display: inline-block;
+  .grid .cell .slot {
+    width: 100%;
+    height: 100%;
     background: whitesmoke; }
-  .grid .slots .row:nth-child(even) > .slot:nth-child(even),
-  .grid .slots .row:nth-child(odd) > .slot:nth-child(odd) {
-    background: lightgray; }
-  .grid .slots .machine {
-    margin: 15px;
-    width: 65px;
-    height: 65px;
-    border: thin solid black;
-    background: greenyellow;
-    position: relative; }
-    .grid .slots .machine .port {
+    .grid .cell .slot .machine {
+      top: 20%;
+      left: 20%;
+      width: 60%;
+      height: 60%;
       border: thin solid black;
-      position: absolute; }
-    .grid .slots .machine .input {
-      background: blue; }
-    .grid .slots .machine .output {
-      background: red; }
-    .grid .slots .machine .up, .grid .slots .machine .down {
-      width: 30px;
-      height: 15px;
-      left: 15px; }
-    .grid .slots .machine .up {
-      top: -10px; }
-    .grid .slots .machine .down {
-      top: 55px; }
-    .grid .slots .machine .left, .grid .slots .machine .right {
-      width: 15px;
-      height: 30px;
-      top: 15px; }
-    .grid .slots .machine .left {
-      left: -10px; }
-    .grid .slots .machine .right {
-      left: 55px; }
-  .grid .numbers {
-    position: fixed;
-    top: -27px;
-    left: -2px; }
-    .grid .numbers .row .number {
-      width: 20px;
-      height: 20px;
-      display: inline-block;
-      margin-right: 30px;
-      overflow: hidden; }
-    .grid .numbers .row .number:nth-child(even) {
-      margin-bottom: 50px; }
-    .grid .numbers .row .number:nth-child(odd) {
-      margin-top: 76px; }
+      background: greenyellow;
+      position: relative; }
+      .grid .cell .slot .machine .port {
+        border: thin solid black;
+        position: absolute; }
+      .grid .cell .slot .machine .input {
+        background: blue; }
+      .grid .cell .slot .machine .output {
+        background: red; }
+      .grid .cell .slot .machine .up, .grid .cell .slot .machine .down {
+        width: 30%;
+        height: 30%;
+        left: 35%; }
+      .grid .cell .slot .machine .up {
+        top: -15%; }
+      .grid .cell .slot .machine .down {
+        top: 85%; }
+      .grid .cell .slot .machine .left, .grid .cell .slot .machine .right {
+        width: 30%;
+        height: 30%;
+        top: 35%; }
+      .grid .cell .slot .machine .left {
+        left: -15%; }
+      .grid .cell .slot .machine .right {
+        left: 85%; }
+  .grid .cell .number {
+    position: absolute;
+    top: 45%;
+    left: -15%;
+    width: 30%;
+    height: 15%;
+    text-align: center; }
+  .grid .cell .number:last-child {
+    top: -5%;
+    left: 35%; }
+.grid .row:nth-child(even) > .cell:nth-child(even) > .slot,
+.grid .row:nth-child(odd) > .cell:nth-child(odd) > .slot {
+  background: lightgray; }
 
 /*# sourceMappingURL=index.css.map */

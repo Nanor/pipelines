@@ -10,33 +10,29 @@ $(document).ready(() ->
       @machines = (null for [1..(@width * @height)])
       @edges = (null for [1..(@width + @height + 2 * @width * @height)])
 
-    paint: () ->
-      slots = $('<div/>', {class: 'slots'})
-      for y in [0...@height]
-        row = $('<div/>', {class: 'row'})
-        for x in [0...@width]
-          row.append($('<div/>', {class: 'slot', id: 'slot' + (y * @width + x)}))
-        slots.append(row)
-      @element.append(slots)
-
-      for machine, i in @machines
-        if machine?
-          @element.find('#slot' + i).append(machine.paint())
-
-      numbers = $('<div/>', {class: 'numbers'})
       for y in [0..@height]
         row = $('<div/>', {class: 'row'})
         for x in [0..@width]
+          cell = $('<div/>', {class: 'cell'})
+          if x < @width and y < @height
+            cell.append($('<div/>', {class: 'slot', id: 'slot' + @toMachineIndex(x, y)}))
           for dir in [LEFT, UP]
-            row.append($('<div/>', {class: 'number', id: 'number' + @toEdgeIndex(x, y, dir)}))
-        numbers.append(row)
-      @element.append(numbers)
+            cell.append($('<div/>', {class: 'number', id: 'number' + @toEdgeIndex(x, y, dir)}))
+          row.append(cell)
+        @element.append(row)
 
     getMachine: (x, y) ->
       @machines[@toMachineIndex(x, y)]
 
     setMachine: (x, y, value) ->
-      @machines[@toMachineIndex(x, y)] = value
+      index = @toMachineIndex(x, y)
+      @machines[index] = value
+
+      slot = $('#slot' + index)
+      slot.find('.machine').remove()
+      slot.append(@machines[index].paint())
+
+      @machines[index]
 
     toMachineIndex: (x, y) ->
       x + y * @width
@@ -115,7 +111,7 @@ $(document).ready(() ->
       if @t?
         @t = null
       else
-        @t = [Math.floor(Math.random() * 4)]
+        @t = [Math.floor(Math.random() * 10)]
   ))
   #Splitter
   grid.setMachine(1, 2, new Machine([UP], [DOWN, RIGHT], (i) -> i.concat(i)))
@@ -128,7 +124,6 @@ $(document).ready(() ->
   #Consumer
   grid.setMachine(3, 3, new Machine([LEFT]))
 
-  grid.paint()
   setInterval(() ->
     grid.update()
   , 1000)
