@@ -3,11 +3,14 @@
   var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   $(document).ready(function() {
-    var DOWN, Grid, LEFT, Machine, RIGHT, UP, grid;
-    UP = 'up';
-    RIGHT = 'right';
-    DOWN = 'down';
-    LEFT = 'left';
+    var Grid, Machine, grid, uid;
+    uid = (function() {
+      var id;
+      id = 0;
+      return function() {
+        return id++;
+      };
+    })();
     Grid = (function() {
       function Grid(width, height, element1) {
         var cell, dir, j, k, l, len, ref, ref1, ref2, row, x, y;
@@ -41,15 +44,17 @@
             if (x < this.width && y < this.height) {
               cell.append($('<div/>', {
                 "class": 'slot',
-                id: 'slot' + this.toMachineIndex(x, y)
+                id: 'slot-' + this.toMachineIndex(x, y),
+                ondrop: 'window.dropSlot(event)',
+                ondragover: 'event.preventDefault()'
               }));
             }
-            ref2 = [LEFT, UP];
+            ref2 = ['left', 'up'];
             for (l = 0, len = ref2.length; l < len; l++) {
               dir = ref2[l];
               cell.append($('<div/>', {
-                "class": 'number',
-                id: 'number' + this.toEdgeIndex(x, y, dir)
+                "class": 'number ' + dir,
+                id: 'number-' + this.toEdgeIndex(x, y, dir)
               }));
             }
             row.append(cell);
@@ -66,14 +71,20 @@
         var index, slot;
         index = this.toMachineIndex(x, y);
         this.machines[index] = value;
-        slot = $('#slot' + index);
+        slot = $('#slot-' + index);
         slot.find('.machine').remove();
-        slot.append(this.machines[index].paint());
+        if (this.machines[index] != null) {
+          slot.append(this.machines[index].paint());
+        }
         return this.machines[index];
       };
 
       Grid.prototype.toMachineIndex = function(x, y) {
         return x + y * this.width;
+      };
+
+      Grid.prototype.fromMachineIndex = function(i) {
+        return [i % this.width, Math.floor(i / this.width)];
       };
 
       Grid.prototype.getEdge = function(x, y, dir) {
@@ -83,19 +94,19 @@
       Grid.prototype.setEdge = function(x, y, dir, value) {
         var edge_index;
         edge_index = this.toEdgeIndex(x, y, dir);
-        this.element.find('#number' + edge_index).text(value != null ? value : '');
+        this.element.find('#number-' + edge_index).text(value != null ? value : '');
         return this.edges[edge_index] = value;
       };
 
       Grid.prototype.toEdgeIndex = function(x, y, dir) {
-        if (dir === UP) {
+        if (dir === 'up') {
           return (x + y * (this.width + 1)) * 2 + 1;
-        } else if (dir === LEFT) {
+        } else if (dir === 'left') {
           return (x + y * (this.width + 1)) * 2;
-        } else if (dir === RIGHT) {
-          return this.toEdgeIndex(x + 1, y, LEFT);
-        } else if (dir === DOWN) {
-          return this.toEdgeIndex(x, y + 1, UP);
+        } else if (dir === 'right') {
+          return this.toEdgeIndex(x + 1, y, 'left');
+        } else if (dir === 'down') {
+          return this.toEdgeIndex(x, y + 1, 'up');
         }
       };
 
@@ -146,7 +157,7 @@
                   ref5 = machine.outputs;
                   for (o = 0, len1 = ref5.length; o < len1; o++) {
                     value = ref5[o];
-                    if (this.getEdge(x, y, value)) {
+                    if (this.getEdge(x, y, value) !== null) {
                       jammed = true;
                     }
                   }
@@ -173,6 +184,30 @@
         return results;
       };
 
+      Grid.prototype.move = function(machineId, slotIndex) {
+        var j, len, machine, newX, newY, oldMachineIndex, oldX, oldY, ref, ref1, ref2, results;
+        if (slotIndex.split('-')[0] === 'slot') {
+          ref = this.machines;
+          results = [];
+          for (oldMachineIndex = j = 0, len = ref.length; j < len; oldMachineIndex = ++j) {
+            machine = ref[oldMachineIndex];
+            if ((machine != null) && machine.id === parseInt(machineId.split('-')[1])) {
+              ref1 = this.fromMachineIndex(oldMachineIndex), oldX = ref1[0], oldY = ref1[1];
+              ref2 = this.fromMachineIndex(slotIndex.split('-')[1]), newX = ref2[0], newY = ref2[1];
+              if (this.getMachine(newX, newY) == null) {
+                this.setMachine(newX, newY, this.getMachine(oldX, oldY));
+                results.push(this.setMachine(oldX, oldY, null));
+              } else {
+                results.push(void 0);
+              }
+            } else {
+              results.push(void 0);
+            }
+          }
+          return results;
+        }
+      };
+
       return Grid;
 
     })();
@@ -184,17 +219,21 @@
           return i;
         });
         this.contents = null;
+        this.id = uid();
       }
 
       Machine.prototype.paint = function() {
         var dir, element, j, k, len, len1, list, name, ref, ref1, ref2;
         element = $('<div/>', {
-          "class": 'machine'
+          "class": 'machine',
+          id: 'machine-' + this.id,
+          draggable: true,
+          ondragstart: 'window.dragMachine(event)'
         });
         ref = [[this.inputs, 'input'], [this.outputs, 'output']];
         for (j = 0, len = ref.length; j < len; j++) {
           ref1 = ref[j], list = ref1[0], name = ref1[1];
-          ref2 = [UP, DOWN, LEFT, RIGHT];
+          ref2 = ['up', 'down', 'left', 'right'];
           for (k = 0, len1 = ref2.length; k < len1; k++) {
             dir = ref2[k];
             if (indexOf.call(list, dir) >= 0) {
@@ -210,31 +249,41 @@
       return Machine;
 
     })();
+    window.dragMachine = function(e) {
+      return e.dataTransfer.setData('text', e.target.id);
+    };
+    window.dropSlot = function(e) {
+      var machineId, slotId;
+      e.preventDefault();
+      machineId = e.dataTransfer.getData('text');
+      slotId = e.target.id;
+      return grid.move(machineId, slotId);
+    };
     grid = new Grid(5, 5, $('.grid'));
-    grid.setMachine(1, 1, new Machine([], [DOWN], function() {
+    grid.setMachine(1, 1, new Machine([], ['down'], function() {
       if (this.t != null) {
         return this.t = null;
       } else {
         return this.t = [Math.floor(Math.random() * 10)];
       }
     }));
-    grid.setMachine(1, 2, new Machine([UP], [DOWN, RIGHT], function(i) {
+    grid.setMachine(1, 2, new Machine(['up'], ['down', 'right'], function(i) {
       return i.concat(i);
     }));
-    grid.setMachine(2, 2, new Machine([LEFT], [DOWN], function(i) {
+    grid.setMachine(2, 2, new Machine(['left'], ['down'], function(i) {
       return i.map(function(a) {
         return a * 2;
       });
     }));
-    grid.setMachine(1, 3, new Machine([UP], [RIGHT]));
-    grid.setMachine(2, 3, new Machine([UP, LEFT], [RIGHT], function(i) {
+    grid.setMachine(1, 3, new Machine(['up'], ['right']));
+    grid.setMachine(2, 3, new Machine(['up', 'left'], ['right'], function(i) {
       return [
         i.reduce(function(a, b) {
           return a + b;
         })
       ];
     }));
-    grid.setMachine(3, 3, new Machine([LEFT]));
+    grid.setMachine(3, 3, new Machine(['left']));
     return setInterval(function() {
       return grid.update();
     }, 1000);

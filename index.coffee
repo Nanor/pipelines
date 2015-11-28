@@ -1,9 +1,9 @@
 $(document).ready(() ->
 
-  UP = 'up'
-  RIGHT = 'right'
-  DOWN = 'down'
-  LEFT = 'left'
+  uid = (()->
+    id = 0
+    return () ->
+      return id++)()
 
   class Grid
     constructor: (@width, @height, @element) ->
@@ -15,9 +15,14 @@ $(document).ready(() ->
         for x in [0..@width]
           cell = $('<div/>', {class: 'cell'})
           if x < @width and y < @height
-            cell.append($('<div/>', {class: 'slot', id: 'slot' + @toMachineIndex(x, y)}))
-          for dir in [LEFT, UP]
-            cell.append($('<div/>', {class: 'number', id: 'number' + @toEdgeIndex(x, y, dir)}))
+            cell.append($('<div/>', {
+              class: 'slot',
+              id: 'slot-' + @toMachineIndex(x, y),
+              ondrop: 'window.dropSlot(event)',
+              ondragover: 'event.preventDefault()',
+            }))
+          for dir in ['left', 'up']
+            cell.append($('<div/>', {class: 'number ' + dir, id: 'number-' + @toEdgeIndex(x, y, dir)}))
           row.append(cell)
         @element.append(row)
 
@@ -28,32 +33,36 @@ $(document).ready(() ->
       index = @toMachineIndex(x, y)
       @machines[index] = value
 
-      slot = $('#slot' + index)
+      slot = $('#slot-' + index)
       slot.find('.machine').remove()
-      slot.append(@machines[index].paint())
+      if @machines[index]?
+        slot.append(@machines[index].paint())
 
       @machines[index]
 
     toMachineIndex: (x, y) ->
       x + y * @width
 
+    fromMachineIndex: (i) ->
+      [i % @width, i // @width]
+
     getEdge: (x, y, dir) ->
       @edges[@toEdgeIndex(x, y, dir)]
 
     setEdge: (x, y, dir, value) ->
       edge_index = @toEdgeIndex(x, y, dir)
-      @element.find('#number'+edge_index).text(if value? then value else '')
+      @element.find('#number-' + edge_index).text(if value? then value else '')
       @edges[edge_index] = value
 
     toEdgeIndex: (x, y, dir) ->
-      if dir == UP
+      if dir == 'up'
         return (x + y * (@width + 1)) * 2 + 1
-      else if dir == LEFT
+      else if dir == 'left'
         return (x + y * (@width + 1)) * 2
-      else if dir == RIGHT
-        return @toEdgeIndex(x + 1, y, LEFT)
-      else if dir == DOWN
-        return @toEdgeIndex(x, y + 1, UP)
+      else if dir == 'right'
+        return @toEdgeIndex(x + 1, y, 'left')
+      else if dir == 'down'
+        return @toEdgeIndex(x, y + 1, 'up')
 
     update: () ->
 #Input
@@ -81,32 +90,57 @@ $(document).ready(() ->
             if machine.contents?
               jammed = false
               for value in machine.outputs
-                if @getEdge(x, y, value)
+                if @getEdge(x, y, value) != null
                   jammed = true
               if not jammed
                 for value, i in machine.contents
                   @setEdge(x, y, machine.outputs[i], value)
                 machine.contents = null
 
+    move: (machineId, slotIndex) ->
+      if slotIndex.split('-')[0] == 'slot'
+        for machine, oldMachineIndex in @machines
+          if machine? and machine.id == parseInt(machineId.split('-')[1])
+            [oldX, oldY] = @fromMachineIndex(oldMachineIndex)
+            [newX, newY] = @fromMachineIndex(slotIndex.split('-')[1])
+
+            if not @getMachine(newX, newY)?
+              @setMachine(newX, newY, @getMachine(oldX, oldY))
+              @setMachine(oldX, oldY, null)
 
   class Machine
     constructor: (@inputs = [], @outputs = [], @function = ((i) -> i)) ->
       @contents = null
+      @id = uid()
 
     paint: () ->
-      element = $('<div/>', {class: 'machine'})
+      element = $('<div/>', {
+        class: 'machine',
+        id: 'machine-' + @id,
+        draggable: true,
+        ondragstart: 'window.dragMachine(event)',
+      })
 
       for [list, name] in [[@inputs, 'input'], [@outputs, 'output']]
-        for dir in [UP, DOWN, LEFT, RIGHT]
+        for dir in ['up', 'down', 'left', 'right']
           if dir in list
             element.append($('<div/>', {class: 'port ' + name + ' ' + dir}))
 
       return element
 
+  window.dragMachine = (e) ->
+    e.dataTransfer.setData('text', e.target.id)
+
+  window.dropSlot = (e) ->
+    e.preventDefault()
+    machineId = e.dataTransfer.getData('text')
+    slotId = e.target.id
+    grid.move(machineId, slotId)
+
   grid = new Grid(5, 5, $('.grid'))
 
   #Produder
-  grid.setMachine(1, 1, new Machine([], [DOWN],
+  grid.setMachine(1, 1, new Machine([], ['down'],
     () ->
       if @t?
         @t = null
@@ -114,15 +148,15 @@ $(document).ready(() ->
         @t = [Math.floor(Math.random() * 10)]
   ))
   #Splitter
-  grid.setMachine(1, 2, new Machine([UP], [DOWN, RIGHT], (i) -> i.concat(i)))
+  grid.setMachine(1, 2, new Machine(['up'], ['down', 'right'], (i) -> i.concat(i)))
   #Doubler
-  grid.setMachine(2, 2, new Machine([LEFT], [DOWN], (i) -> i.map((a) -> a * 2)))
+  grid.setMachine(2, 2, new Machine(['left'], ['down'], (i) -> i.map((a) -> a * 2)))
   #Conveyer
-  grid.setMachine(1, 3, new Machine([UP], [RIGHT]))
+  grid.setMachine(1, 3, new Machine(['up'], ['right']))
   #Adder
-  grid.setMachine(2, 3, new Machine([UP, LEFT], [RIGHT], (i) -> [i.reduce((a, b) -> (a + b))]))
+  grid.setMachine(2, 3, new Machine(['up', 'left'], ['right'], (i) -> [i.reduce((a, b) -> (a + b))]))
   #Consumer
-  grid.setMachine(3, 3, new Machine([LEFT]))
+  grid.setMachine(3, 3, new Machine(['left']))
 
   setInterval(() ->
     grid.update()

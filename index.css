@@ -19,37 +19,36 @@
       position: relative; }
       .grid .cell .slot .machine .port {
         border: thin solid black;
-        position: absolute; }
-      .grid .cell .slot .machine .input {
-        background: blue; }
-      .grid .cell .slot .machine .output {
-        background: red; }
-      .grid .cell .slot .machine .up, .grid .cell .slot .machine .down {
+        position: absolute;
         width: 30%;
-        height: 30%;
-        left: 35%; }
-      .grid .cell .slot .machine .up {
-        top: -15%; }
-      .grid .cell .slot .machine .down {
-        top: 85%; }
-      .grid .cell .slot .machine .left, .grid .cell .slot .machine .right {
-        width: 30%;
-        height: 30%;
-        top: 35%; }
-      .grid .cell .slot .machine .left {
-        left: -15%; }
-      .grid .cell .slot .machine .right {
-        left: 85%; }
+        height: 30%; }
+        .grid .cell .slot .machine .port.input {
+          background: blue; }
+        .grid .cell .slot .machine .port.output {
+          background: red; }
+        .grid .cell .slot .machine .port.up, .grid .cell .slot .machine .port.down {
+          left: 35%; }
+        .grid .cell .slot .machine .port.up {
+          top: -15%; }
+        .grid .cell .slot .machine .port.down {
+          top: 85%; }
+        .grid .cell .slot .machine .port.left, .grid .cell .slot .machine .port.right {
+          top: 35%; }
+        .grid .cell .slot .machine .port.left {
+          left: -15%; }
+        .grid .cell .slot .machine .port.right {
+          left: 85%; }
   .grid .cell .number {
     position: absolute;
-    top: 45%;
-    left: -15%;
     width: 30%;
     height: 15%;
     text-align: center; }
-  .grid .cell .number:last-child {
-    top: -5%;
-    left: 35%; }
+    .grid .cell .number.left {
+      top: 45%;
+      left: -15%; }
+    .grid .cell .number.up {
+      top: -5%;
+      left: 35%; }
 .grid .row:nth-child(even) > .cell:nth-child(even) > .slot,
 .grid .row:nth-child(odd) > .cell:nth-child(odd) > .slot {
   background: lightgray; }

@@ -27,42 +27,36 @@ $slot_size: 100px
         .port
           border: thin solid black
           position: absolute
-
-        .input
-          background: blue
-
-        .output
-          background: red
-
-        .up, .down
           width: 30%
           height: 30%
-          left: 35%
-        .up
-          top: -15%
-        .down
-          top: 85%
-
-        .left, .right
-          width: 30%
-          height: 30%
-          top: 35%
-        .left
-          left: -15%
-        .right
-          left: 85%
+          &.input
+            background: blue
+          &.output
+            background: red
+          &.up, &.down
+            left: 35%
+          &.up
+            top: -15%
+          &.down
+            top: 85%
+          &.left, &.right
+            top: 35%
+          &.left
+            left: -15%
+          &.right
+            left: 85%
 
     .number
       position: absolute
-      top: 45%
-      left: -15%
       width: 30%
       height: 15%
       text-align: center
-
-    .number:last-child
-      top: -5%
-      left: 35%
+      &.left
+        top: 45%
+        left: -15%
+      &.up
+        top: -5%
+        left: 35%
 
 
   .row:nth-child(even) > .cell:nth-child(even) > .slot,
