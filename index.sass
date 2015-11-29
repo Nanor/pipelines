@@ -1,11 +1,15 @@
-$slot_size: 100px
+$grid_slot_size: 100px
+$inventory_slot_size: 70px
 
 .grid
+  display: inline-block
+  vertical-align: top
+
   .row
-    height: $slot_size
+    height: $grid_slot_size
 
   .cell
-    width: $slot_size
+    width: $grid_slot_size
     height: 100%
     display: inline-block
     position: relative
@@ -62,3 +66,9 @@ $slot_size: 100px
   .row:nth-child(even) > .cell:nth-child(even) > .slot,
   .row:nth-child(odd) > .cell:nth-child(odd) > .slot
     background: lightgray
+
+#inventory
+  .row
+    height: $inventory_slot_size
+    .cell
+      width: $inventory_slot_size
